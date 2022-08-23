@@ -1,0 +1,1 @@
+aws cloudformation deploy --stack-name cognito-onetime-password-template --template-file service-infrastructure.template --parameter-overrides Environment=staging

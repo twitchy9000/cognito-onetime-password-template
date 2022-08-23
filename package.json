@@ -1,0 +1,19 @@
+{
+  "name": "cognito-one-time-password-template",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "deploy:staging:code": "sls deploy -s staging",
+    "deploy:staging:inf": "./deploy-staging.sh"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.102",
+    "serverless-plugin-typescript": "^2.1.2"
+  },
+  "dependencies": {
+    "crypto-secure-random-digit": "^1.0.10"
+  }
+}

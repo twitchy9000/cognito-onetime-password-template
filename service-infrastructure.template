@@ -1,0 +1,121 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Cognito setup for onetime password login service",
+  "Parameters": {
+    "Environment": {
+      "Type": "String",
+      "Description": "Environment for infrastructure"
+    }
+  },
+  "Resources": {
+    "Client": {
+      "Type": "AWS::Cognito::UserPoolClient",
+      "Properties": {
+        "ExplicitAuthFlows": [
+          "ALLOW_CUSTOM_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH",
+          "ALLOW_USER_SRP_AUTH"
+        ],
+        "PreventUserExistenceErrors": "ENABLED",
+        "UserPoolId": {
+          "Ref": "Pool"
+        }
+      }
+    },
+    "Pool": {
+      "Type": "AWS::Cognito::UserPool",
+      "Properties": {
+        "AutoVerifiedAttributes": [ "email" ],
+        "LambdaConfig": {
+          "CreateAuthChallenge": "arn:aws:lambda:us-east-1:666434683644:function:cognito-one-time-password-template-staging-createAuth",
+          "DefineAuthChallenge": "arn:aws:lambda:us-east-1:666434683644:function:cognito-one-time-password-template-staging-defineAuth",
+          "VerifyAuthChallengeResponse": "arn:aws:lambda:us-east-1:666434683644:function:cognito-one-time-password-template-staging-verifyAuth",
+          "PreSignUp": "arn:aws:lambda:us-east-1:666434683644:function:cognito-one-time-password-template-staging-preSignUp"
+        },
+        "Policies": {
+          "PasswordPolicy": {
+            "MinimumLength": 12,
+            "RequireLowercase": true,
+            "RequireNumbers": true,
+            "RequireSymbols": true,
+            "RequireUppercase": true,
+            "TemporaryPasswordValidityDays": 3
+          }
+        },
+        "UsernameAttributes": [
+          "email"
+        ]
+      }
+    },
+    "CreateAuthLambdaPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "arn:aws:lambda:us-east-1:666434683644:function:cognito-one-time-password-template-staging-createAuth",
+        "Principal": "cognito-idp.amazonaws.com",
+        "SourceAccount": "666434683644",
+        "SourceArn": {
+          "Fn::GetAtt": ["Pool", "Arn"]
+        }
+      }
+    },
+    "DefineAuthLambdaPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "arn:aws:lambda:us-east-1:666434683644:function:cognito-one-time-password-template-staging-defineAuth",
+        "Principal": "cognito-idp.amazonaws.com",
+        "SourceAccount": "666434683644",
+        "SourceArn": {
+          "Fn::GetAtt": ["Pool", "Arn"]
+        }
+      }
+    },
+    "VerifyAuthLambdaPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "arn:aws:lambda:us-east-1:666434683644:function:cognito-one-time-password-template-staging-verifyAuth",
+        "Principal": "cognito-idp.amazonaws.com",
+        "SourceAccount": "666434683644",
+        "SourceArn": {
+          "Fn::GetAtt": ["Pool", "Arn"]
+        }
+      }
+    },
+    "PreSignUpAuthLambdaPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "arn:aws:lambda:us-east-1:666434683644:function:cognito-one-time-password-template-staging-preSignUp",
+        "Principal": "cognito-idp.amazonaws.com",
+        "SourceAccount": "666434683644",
+        "SourceArn": {
+          "Fn::GetAtt": ["Pool", "Arn"]
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ClientId": {
+      "Value": {
+        "Ref": "Client"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${Environment}-UwpClientId"
+        }
+      }
+    },
+    "PoolId": {
+      "Value": {
+        "Ref": "Pool"
+      },
+      "Export": {
+        "Name": {
+          "Fn::Sub": "${Environment}-UwpPoolId"
+        }
+      }
+    }
+  }
+}
